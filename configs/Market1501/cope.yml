@@ -1,0 +1,69 @@
+MODEL:
+  NAME: 'ViT-B-16'
+  STRIDE_SIZE: [16, 16]
+  #STRIDE_SIZE: [12, 12]
+  MEMORY_MOMENTUM: 0.2
+
+INPUT:
+  SIZE_TRAIN: [256, 128]
+  SIZE_TEST: [256, 128]
+  PROB: 0.5 # random horizontal flip
+  RE_PROB: 0.5 # random erasing
+  PADDING: 10
+  PIXEL_MEAN: [0.5, 0.5, 0.5]
+  PIXEL_STD: [0.5, 0.5, 0.5]
+ 
+DATALOADER:
+  NUM_INSTANCE: 4
+  NUM_WORKERS: 16
+
+SOLVER:
+  STAGE1:
+    IMS_PER_BATCH: 64
+    PRETRAINED_PATH: ''
+    OPTIMIZER_NAME: "Adam"
+    BASE_LR: 4e-2
+    WARMUP_LR_INIT: 1e-5
+    LR_MIN: 1e-6
+    WARMUP_METHOD: 'linear'
+    WEIGHT_DECAY:  1e-4
+    WEIGHT_DECAY_BIAS: 1e-4
+    MAX_EPOCHS: 60
+    CHECKPOINT_PERIOD: 60
+    LOG_PERIOD: 50
+    WARMUP_EPOCHS: 5
+
+  IMS_PER_BATCH: 64
+  OPTIMIZER_NAME: "SGD"
+  BASE_LR: 3.5e-4
+  WARMUP_METHOD: 'linear'
+  WARMUP_ITERS: 10
+  WARMUP_FACTOR: 0.1
+  WEIGHT_DECAY: 5.0e-4
+  MAX_EPOCHS: 100
+  CHECKPOINT_PERIOD: 100
+  LOG_PERIOD: 50
+  EVAL_PERIOD: 20
+
+  # Hyper-parameters
+  CONTEXT_NUM: 4
+  OCCLUSION_NUM: 20
+  USED_OCCLUSION_NUM: 2
+  K1: 200
+  K2: 5
+
+  STEPS: [0.3, 0.5, 0.7]
+  GAMMA: 0.1
+
+TEST:
+  EVAL: True
+  IMS_PER_BATCH: 256
+  RE_RANKING: False
+  USE_P_SCORE: True
+  WEIGHT: ''
+
+DATASETS:
+  NAMES: ('market1501')
+  ROOT_DIR: ('/home/xxx/occluded/datasets')
+
+OUTPUT_DIR: './logs/market_cope/'
