@@ -58,7 +58,6 @@ TEST:
   EVAL: True
   IMS_PER_BATCH: 256
   RE_RANKING: False
-  USE_P_SCORE: True
   WEIGHT: ''
 
 DATASETS:

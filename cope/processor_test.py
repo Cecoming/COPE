@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn.functional as F
 from utils.meter import AverageMeter
-from utils.metrics import R1_mAP_eval
+from utils.metrics_PSS import R1_mAP_eval
 from utils.CICO_PBF import CICO_PBF
 from torch.cuda import amp
 from .utils import *
@@ -24,7 +24,7 @@ def do_inference(cfg,
     logger.info("Enter inferencing")
     model.to(device)
 
-    evaluator = R1_mAP_eval(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM, reranking=cfg.TEST.RE_RANKING, use_p_score=cfg.TEST.USE_P_SCORE, K1=cfg.SOLVER.K1, K2=cfg.SOLVER.K2)
+    evaluator = R1_mAP_eval(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM, reranking=cfg.TEST.RE_RANKING, K1=cfg.SOLVER.K1, K2=cfg.SOLVER.K2)
     evaluator.reset()
 
     start_time = time.time()  # Start timing

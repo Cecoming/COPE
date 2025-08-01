@@ -160,6 +160,7 @@ class R1_mAP_eval():
                 sim[i, idx_candidate] += delta 
                 
             dist = (1 / sim) - 1
+        ############################### END
             
         distmat = dist
         cmc_h, mAP_h = eval_func(distmat, q_pids, g_pids, q_camids, g_camids)
