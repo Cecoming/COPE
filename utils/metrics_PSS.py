@@ -72,13 +72,12 @@ def eval_func(distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50):
     return all_cmc, mAP
 
 class R1_mAP_eval():
-    def __init__(self, num_query, max_rank=50, feat_norm=True, reranking=False, use_p_score=True, K1=5, K2=200):
+    def __init__(self, num_query, max_rank=50, feat_norm=True, reranking=False, K1=5, K2=200):
         super(R1_mAP_eval, self).__init__()
         self.num_query = num_query
         self.max_rank = max_rank
         self.feat_norm = feat_norm
         self.reranking = reranking
-        self.use_p_score = use_p_score 
         
         self.feats = []
         self.pids = []
@@ -126,40 +125,40 @@ class R1_mAP_eval():
             dist = euclidean_distance(qf, gf)
 
         ############################### Prompt Similarity Scoring(PSS)
-        if self.use_p_score:
-            print('=> Compute DistMat with Prompt Score')
-            p_scores = torch.cat(self.p_scores, dim=0)
-            # Convert dist to Tensor
-            sim = 1 / (1 + dist)    # [query_num, gallery_num]
-            K_1 = self.K1       # the number of candidate gallery samples 
-            K_2 = self.K2       # the number of intermediate reference samples
-            print('=> Intermediate reference samples: {}, Candidate gallery samples : {}'.format(K_2, K_1))
+        print('=> Compute DistMat with Prompt Score')
+        p_scores = torch.cat(self.p_scores, dim=0)
+        # 1. Convert dist to Similarity
+        sim = 1 / (1 + dist)    # [query_num, gallery_num]
+        # 2. get K1 and K2
+        K_1 = self.K1       # the number of candidate gallery samples 
+        K_2 = self.K2       # the number of intermediate reference samples
+        print('=> Intermediate reference samples: {}, Candidate gallery samples : {}'.format(K_2, K_1))
 
-            # 3. Calculate prompt score similarity
-            g_p_score = p_scores[self.num_query:].numpy()   # [gallery_num]
-            p_sim = sim * g_p_score[np.newaxis, :]
+        # 3. Calculate prompt score similarity
+        g_p_score = p_scores[self.num_query:].numpy()   # [gallery_num]
+        p_sim = sim * g_p_score[np.newaxis, :]
 
-            # 4. get top-K samples
-            idxs_candidate = np.argsort(-sim, axis=1)[:, :K_1]   # shape [query_num, K_1]
-            idxs_intermediate = np.argsort(-p_sim, axis=1)[:, :K_2]  # shape [query_num, K_1]
+        # 4. get top-K samples
+        idxs_candidate = np.argsort(-sim, axis=1)[:, :K_1]   # shape [query_num, K_1]
+        idxs_intermediate = np.argsort(-p_sim, axis=1)[:, :K_2]  # shape [query_num, K_1]
 
-            # 5. Iterate through each query sample to continue calculating scores
-            for i in range(self.num_query):
-                idx_candidate = idxs_candidate[i]     # shape [K_1]
-                idx_intermediate = idxs_intermediate[i]  # shape [K_2]
+        # 5. Iterate through each query sample to continue calculating scores
+        for i in range(self.num_query):
+            idx_candidate = idxs_candidate[i]     # shape [K_1]
+            idx_intermediate = idxs_intermediate[i]  # shape [K_2]
 
-                F1 = gf[idx_candidate]       # [K_1, D]
-                F2 = gf[idx_intermediate]    # [K_2, D]
+            F1 = gf[idx_candidate]       # [K_1, D]
+            F2 = gf[idx_intermediate]    # [K_2, D]
 
-                inter_dist = euclidean_distance(F2, F1)                 # [K_2, K_1]
-                inter_sim = 1 / (1 + inter_dist)                        # [K_2, K_1]
+            inter_dist = euclidean_distance(F2, F1)                 # [K_2, K_1]
+            inter_sim = 1 / (1 + inter_dist)                        # [K_2, K_1]
                 
-                p_sim_inter = p_sim[i, idx_intermediate].reshape(1,-1)   # [K_2, 1]
-                delta = (p_sim_inter @ inter_sim).reshape(-1) / K_2  # shape: [K_1] 
+            p_sim_inter = p_sim[i, idx_intermediate].reshape(1,-1)   # [K_2, 1]
+            delta = (p_sim_inter @ inter_sim).reshape(-1) / K_2  # shape: [K_1] 
 
-                sim[i, idx_candidate] += delta 
+            sim[i, idx_candidate] += delta 
                 
-            dist = (1 / sim) - 1
+        dist = (1 / sim) - 1
         ############################### END
             
         distmat = dist
