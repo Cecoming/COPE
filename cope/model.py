@@ -3,27 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from timm.models.layers import trunc_normal_
 
-def compute_sim_score(sim_matrix, threshold=0.4):
-    """
-    Compute the foreground occupancy rate (sim_score) for each sample.
-
-    Args:
-        sim_matrix (torch.Tensor): Input tensor with shape [B, H, W].
-
-    Returns:
-        torch.Tensor: Foreground occupancy rate for each sample, shape [B].
-    """
-    # Apply the sigmoid function to map values to the range [0, 1]
-    sim_matrix = torch.sigmoid(sim_matrix)
-    # Consider elements greater than 0.5 as foreground
-    foreground_mask = sim_matrix > threshold
-    # Calculate the number of foreground pixels for each sample
-    foreground_count = foreground_mask.sum(dim=(1, 2))  # Sum over H and W dimensions
-    # Calculate the total number of pixels per sample
-    total_pixels = sim_matrix.size(1) * sim_matrix.size(2)
-    # Compute the foreground occupancy rate
-    sim_score = foreground_count / total_pixels
-    return sim_score
 
 class SimWithCenter(nn.Module):
     def __init__(self, dim_output):
