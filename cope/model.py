@@ -3,6 +3,27 @@ import torch.nn as nn
 import torch.nn.functional as F
 from timm.models.layers import trunc_normal_
 
+def compute_sim_score(sim_matrix, threshold=0.4):
+    """
+    Compute the foreground occupancy rate (sim_score) for each sample.
+
+    Args:
+        sim_matrix (torch.Tensor): Input tensor with shape [B, H, W].
+
+    Returns:
+        torch.Tensor: Foreground occupancy rate for each sample, shape [B].
+    """
+    # Apply the sigmoid function to map values to the range [0, 1]
+    sim_matrix = torch.sigmoid(sim_matrix)
+    # Consider elements greater than 0.5 as foreground
+    foreground_mask = sim_matrix > threshold
+    # Calculate the number of foreground pixels for each sample
+    foreground_count = foreground_mask.sum(dim=(1, 2))  # Sum over H and W dimensions
+    # Calculate the total number of pixels per sample
+    total_pixels = sim_matrix.size(1) * sim_matrix.size(2)
+    # Compute the foreground occupancy rate
+    sim_score = foreground_count / total_pixels
+    return sim_score
 
 class SimWithCenter(nn.Module):
     def __init__(self, dim_output):
@@ -173,7 +194,7 @@ class TransReID(nn.Module):
         self.proj = nn.Parameter(scale * torch.randn(self.in_planes, self.in_planes_proj))
 
 
-    def forward(self, x, cam_label= None, view_label=None, get_image=None, get_matrix = True):
+    def forward(self, x, cam_label= None, view_label=None, get_image=None, get_matrix = True, pss_type=1):
         #### clip vit
         if cam_label != None and view_label!=None:
             cv_embed = self.sie_coe * self.cv_embed[cam_label * self.view_num + view_label]
@@ -198,12 +219,15 @@ class TransReID(nn.Module):
         if get_image:
             return out_feat
 
+        # When testing, selectively choose the following PSS or PSS-N, and comment out unnecessary modules.
+        ############################ PSS test
         prompts = self.prompt_learner(img_feature_proj.detach())
         text_feat = self.text_encoder(prompts, self.prompt_learner.tokenized_prompts)
-        sim_matrix = get_sim_matrix(img_feat_proj_patch.detach(), text_feat, [x.shape[-2], x.shape[-1]], [self.h_resolution, self.w_resolution])   
+        sim_matrix = get_sim_matrix(img_feat_proj_patch.detach(), text_feat, [x.shape[-2], x.shape[-1]], [self.h_resolution, self.w_resolution]) 
         sim_score = self.sim_with_center(sim_matrix.detach())
-
-
+        ############################ NPSS test
+        # sim_score = torch.ones(x.shape[0], device=x.device)# [B]
+        
         # for training and evaluation
         if self.training:
             logit = self.classifier(out_feat)
