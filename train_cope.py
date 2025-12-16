@@ -7,10 +7,12 @@ import argparse
 from config import cfg
 from solver.lr_scheduler import WarmupMultiStepLR
 from cope.dataloader import make_dataloader
-from cope.processor_test import do_inference
+from cope.processor_train import train
 from cope.optimizer import make_optimizer
 from cope.model import make_model
-
+from solver.make_optimizer import make_optimizer_1stage
+from solver.scheduler_factory import create_scheduler
+    
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -42,8 +44,8 @@ if __name__ == '__main__':
     output_dir = cfg.OUTPUT_DIR
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
-        
-    logger = setup_logger("COPE", output_dir, if_train=False)
+    
+    logger = setup_logger("COPE", output_dir, if_train=True)
     logger.info("Saving model in the path :{}".format(cfg.OUTPUT_DIR))
     logger.info(args)
     
@@ -55,13 +57,29 @@ if __name__ == '__main__':
     logger.info("Running with config:\n{}".format(cfg))
     
     train_loader, val_loader, cluster_loader, num_query, num_classes, camera_num, view_num = make_dataloader(cfg)
-    model = make_model(cfg, num_classes, camera_num=camera_num, view_num=view_num)
+
+    if cfg.MODEL.NAME == 'ViT-B-16':
+        model = make_model(cfg, num_classes, camera_num=camera_num, view_num=view_num)
+    else:
+        raise ValueError("Model name not recognized: {}".format(cfg.MODEL.NAME))
     optimizer = make_optimizer(cfg, model)
     scheduler = WarmupMultiStepLR(optimizer, cfg.SOLVER.STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_FACTOR,
                                   cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.WARMUP_METHOD, max_epoch=cfg.SOLVER.MAX_EPOCHS)
     
-    model.load_param(cfg.TEST.WEIGHT)  
-    do_inference(cfg,
-                 model,
-                 val_loader,
-                 num_query)
+    optimizer_1stage = make_optimizer_1stage(cfg, model)
+    scheduler_1stage = create_scheduler(optimizer_1stage, num_epochs = cfg.SOLVER.STAGE1.MAX_EPOCHS, lr_min = cfg.SOLVER.STAGE1.LR_MIN, \
+                        warmup_lr_init = cfg.SOLVER.STAGE1.WARMUP_LR_INIT, warmup_t = cfg.SOLVER.STAGE1.WARMUP_EPOCHS, noise_range = None)
+    
+    train(
+        cfg,
+        model,
+        train_loader,
+        val_loader,
+        cluster_loader,
+        optimizer,
+        scheduler,
+        num_query,
+        num_classes,
+        optimizer_1stage,
+        scheduler_1stage,
+    )
