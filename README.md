@@ -5,7 +5,7 @@
 
 Welcome to the official repository of our CVPR 2026 paper, "_COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-Identification_."
 
-COPE is designed for **occluded person re-identification** and delivers strong performance on both occluded and holistic Re-ID benchmarks.
+COPE is designed for **occluded person re-identification** and delivers strong performance on both occluded and holistic Re-ID benchmarks. ✨
 
 Key Highlights:
 
@@ -54,7 +54,7 @@ Key Highlights:
 
 ## Environment
 
-Please install `conda` before proceeding.
+🛠️ Please install `conda` before proceeding.
 
 ```bash
 conda create -n reid python=3.10
@@ -69,7 +69,7 @@ pip install -r requirements.txt
 
 ## Datasets
 
-Create a `data` folder under the root directory. Download and unzip the datasets into it:
+📂 Create a `data` folder under the root directory. Download and unzip the datasets into it:
 
 ### Occluded Datasets
 
@@ -87,7 +87,7 @@ Create a `data` folder under the root directory. Download and unzip the datasets
 
 ## Human Parsing Labels
 
-We use human parsing labels from **[BPBreID](https://github.com/VlSomers/bpbreid)** for five datasets:
+🧩 We use human parsing labels from **[BPBreID](https://github.com/VlSomers/bpbreid)** for five datasets:
 Market-1501, Occluded-Duke, Occluded-ReID, P-DukeMTMC, and Partial-REID.
 We use the `pifpaf_maskrcnn_filtering` labels, following their file structure:
 
@@ -96,7 +96,7 @@ Market-1501
 ├── train
 ├── test
 ├── masks
-│   └── pifpaf
+│   └── pifpaf_maskrcnn_filtering
 ├── list_gallery.txt
 ├── list_query.txt
 ├── list_train.txt
@@ -131,7 +131,7 @@ We provide all released models with a **stride size of 16** to support reproduci
 
 ## Training
 
-Train COPE with:
+🚀 Train COPE with:
 
 ```bash
 conda activate reid
@@ -151,7 +151,7 @@ Please make sure that the dataset path, human parsing labels, and output setting
 
 ## Inference
 
-Evaluate a downloaded model with:
+🔍 Evaluate a downloaded model with:
 
 ```bash
 conda activate reid
@@ -174,7 +174,7 @@ Configuration files for all datasets are available in `configs/<target_dataset>/
 
 ## PSS and NPSS as Plug-in Post-processing Modules
 
-We also provides two practical post-processing modules that can be reused in other Re-ID pipelines.
+✨ We also provide two practical post-processing modules that can be reused in other Re-ID pipelines.
 
 ### Reusing PSS Without Retraining Another Method
 
@@ -226,7 +226,7 @@ The following results show that NPSS consistently improves different backbones w
 
 ## Acknowledgement
 
-This codebase is built upon the excellent work of the following projects. We sincerely thank the authors for their contributions to the Re-ID community!
+🙏 This codebase is built upon the excellent work of the following projects. We sincerely thank the authors for their contributions to the Re-ID community!
 
 1. [TransReID](https://github.com/damo-cv/TransReID)
 2. [CLIP-ReID](https://github.com/Syliz517/CLIP-ReID)
