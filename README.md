@@ -1,28 +1,58 @@
 
-# 🔍COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-identification
+# 🔍 COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-Identification
 
 ## Introduction
-Welcome to the official repository for our CVPR 2026 paper "_COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-Identification_" — a state-of-the-art model for **Occluded Person Re-identification**!
-Our method achieves 🚀 **SOTA performance** on multiple occluded and holistic person Re-ID benchmarks. 
+
+Welcome to the official repository of our CVPR 2026 paper, "_COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-Identification_."
+
+COPE is designed for **occluded person re-identification** and delivers strong performance on both occluded and holistic Re-ID benchmarks.
 
 Key Highlights:
-1. We propose the COPE network, which consistently outperforms existing methods across **four occluded** and **two holistic** Re-ID datasets.  
-   🏆 Notably, it achieves **82.4% Rank-1 accuracy** and **76.4% mAP** on the challenging **Occluded-Duke** dataset.
-2. This repository provides **all information**: dependencies, datasets, code, trained weights, and clear instructions for testing. The complete training process will be released soon.
+
+1. COPE consistently outperforms existing methods on **four occluded** and **two holistic** Re-ID datasets.
+   🏆 In particular, it achieves **82.4% Rank-1 accuracy** and **76.4% mAP** on the challenging **Occluded-Duke** benchmark.
+2. This repository provides the core resources needed for reproduction and evaluation, including dependencies, dataset preparation notes, training and inference entry points, and trained weights.
+3. We further provide **transferable post-processing tools** for other Re-ID methods:
+   `PSS` can be reused at inference time by exporting gallery prompt scores from COPE, while `NPSS` offers a lightweight **training-free** alternative when human parsing labels are unavailable.
+
+## Table of Contents
+
+- [🔍 COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-Identification](#-cope-consistent-occlusion-and-prompt-enhancement-network-for-occluded-person-re-identification)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Pipeline](#pipeline)
+    - [Training Stage](#training-stage)
+    - [Inference Stage](#inference-stage)
+  - [Environment](#environment)
+  - [Datasets](#datasets)
+    - [Occluded Datasets](#occluded-datasets)
+    - [Holistic Datasets](#holistic-datasets)
+  - [Human Parsing Labels](#human-parsing-labels)
+  - [Weights](#weights)
+  - [Training](#training)
+  - [Inference](#inference)
+  - [PSS and NPSS as Plug-in Post-processing Modules](#pss-and-npss-as-plug-in-post-processing-modules)
+    - [Reusing PSS Without Retraining Another Method](#reusing-pss-without-retraining-another-method)
+    - [Comparison with Re-ranking on Occluded-DukeMTMC](#comparison-with-re-ranking-on-occluded-dukemtmc)
+    - [NPSS: A Training-Free Alternative](#npss-a-training-free-alternative)
+    - [NPSS Performance Across Different Backbones](#npss-performance-across-different-backbones)
+  - [Acknowledgement](#acknowledgement)
 
 ---
 
 ## Pipeline
 
 ### Training Stage
-<img src="assets/cope_train.png" alt="Training Pipeline"/>
+
+![Training Pipeline](assets/cope_train.png)
 
 ### Inference Stage
-<img src="assets/cope_test.png" alt="Test Pipeline" width="60%"/>
+
+![Inference Pipeline](assets/cope_test.png)
 
 ---
 
-## Enviroment
+## Environment
 
 Please install `conda` before proceeding.
 
@@ -42,12 +72,14 @@ pip install -r requirements.txt
 Create a `data` folder under the root directory. Download and unzip the datasets into it:
 
 ### Occluded Datasets
+
 - [Occluded-Duke](https://github.com/lightas/Occluded-DukeMTMC-Dataset)
 - [Occluded-REID](https://github.com/kevinbro96/ICME2018_Occluded-Person-Reidentification_datasets)
 - [P-DukeMTMC-reID](https://github.com/kevinbro96/ICME2018_Occluded-Person-Reidentification_datasets)
 - [Partial-REID](https://opendatalab.org.cn/OpenDataLab/Partial-REID)
 
 ### Holistic Datasets
+
 - [Market1501](https://drive.google.com/file/d/0B8-rUzbwVRk0c054eEozWG9COHM/view)
 - [MSMT17](https://arxiv.org/abs/1711.08565)
 
@@ -55,14 +87,26 @@ Create a `data` folder under the root directory. Download and unzip the datasets
 
 ## Human Parsing Labels
 
-We use human parsing labels from **[BPBreID](https://github.com/VlSomers/bpbreid)** for five datasets:  
-Market-1501, Occluded-Duke, Occluded-ReID, P-DukeMTMC, and Partial-REID.  
-We use the `pifpaf_maskrcnn_filtering` labels, following their file structure.
+We use human parsing labels from **[BPBreID](https://github.com/VlSomers/bpbreid)** for five datasets:
+Market-1501, Occluded-Duke, Occluded-ReID, P-DukeMTMC, and Partial-REID.
+We use the `pifpaf_maskrcnn_filtering` labels, following their file structure:
 
-For **MSMT17**, we generated parsing labels using the same pipeline and selected `pifpaf` as the final label source after evaluation. Related links will be provided soon. 
+```text
+Market-1501
+├── train
+├── test
+├── masks
+│   └── pifpaf
+├── list_gallery.txt
+├── list_query.txt
+├── list_train.txt
+└── list_val.txt
+```
+
+For **MSMT17**, we generated parsing labels using the same pipeline and selected `pifpaf` as the final label source after evaluation.
 The expected directory structure is:
 
-```
+```text
 MSMT17
 ├── train
 ├── test
@@ -80,14 +124,34 @@ MSMT17
 
 ## Weights
 
-We’ve open-sourced all models with a **stride size of 16** to support reproducibility and future research. 🙌  
-🔗 Download links for **[trained weights](https://drive.google.com/drive/folders/1ekVtlmAv_3mkgQUIM9db6wqCrr0--rNB?usp=sharing)** are available in the model release section (check `configs/` or our model hub).
+We provide all released models with a **stride size of 16** to support reproducibility and follow-up research.  
+🔗 Download links for **[trained weights](https://drive.google.com/drive/folders/1ekVtlmAv_3mkgQUIM9db6wqCrr0--rNB?usp=sharing)** are available in the model release section. Please refer to `configs/` for the corresponding configuration files.
+
+---
+
+## Training
+
+Train COPE with:
+
+```bash
+conda activate reid
+python train_cope.py --config_file configs/<target_dataset>/cope.yml
+```
+
+Example for **Occluded-Duke**:
+
+```bash
+conda activate reid
+python train_cope.py --config_file configs/OCC_Duke/cope.yml
+```
+
+Please make sure that the dataset path, human parsing labels, and output settings in the configuration file are correctly prepared before training.
 
 ---
 
 ## Inference
 
-Test the downloaded model with:
+Evaluate a downloaded model with:
 
 ```bash
 conda activate reid
@@ -101,30 +165,30 @@ conda activate reid
 python test_cope.py --config_file configs/OCC_Duke/cope.yml
 ```
 
-🔧 Ensure that `TEST.WEIGHT` in the `.yml` config points to your downloaded checkpoint.
+🔧 Ensure that `TEST.WEIGHT` in the `.yml` configuration points to the downloaded checkpoint.
 
-Config files for all datasets are located in `configs/<target_dataset>/`.
-⚠️ **Note**: Make sure to download and prepare the **human parsing labels** before starting training.
+Configuration files for all datasets are available in `configs/<target_dataset>/`.
+⚠️ **Note**: Please download and prepare the **human parsing labels** before starting training.
 
 ---
 
-## Use PSS in other methods
+## PSS and NPSS as Plug-in Post-processing Modules
 
-COPE also provides two practical post-processing modules that can be reused in other Re-ID pipelines.
+We also provides two practical post-processing modules that can be reused in other Re-ID pipelines.
 
 ### Reusing PSS Without Retraining Another Method
 
-If you would like to apply **PSS** to another method at inference time, but do not want to migrate the full PSS training pipeline, we recommend the following workflow:
+If you would like to apply **PSS** to another method at inference time, but do not want to migrate the full PSS training process, we recommend the following workflow:
 
 1. Train COPE once on the target dataset.
-2. During COPE inference, save the prompt scores of all gallery images.
-3. During inference of another method, load these saved gallery prompt scores and use them directly for PSS-based post-processing.
+2. During COPE inference, save the prompt scores of all gallery samples.
+3. During inference of another method, load the saved gallery prompt scores and reuse them directly for PSS-based post-processing.
 
-This strategy lets you benefit from PSS without modifying the training process of the target method. The implementation can be found in `utils/metrics_PSS.py`.
+This strategy allows you to benefit from PSS without changing the training procedure of the target method. The implementation is available in `utils/metrics_PSS.py`.
 
 ### Comparison with Re-ranking on Occluded-DukeMTMC
 
-The table below compares standard re-ranking and PSS-based post-processing on **Occluded-DukeMTMC**. PSS provides a stronger balance between accuracy and inference cost for COPE, while also remaining easy to integrate into other methods.
+The table below compares standard re-ranking and PSS-based post-processing on **Occluded-DukeMTMC**. For COPE, PSS offers a stronger balance between accuracy and inference cost, while remaining easy to transfer to other methods.
 
 | Index | Setting | Rank-1 | mAP | Inference Time |
 | --- | --- | ---: | ---: | ---: |
@@ -140,13 +204,13 @@ The table below compares standard re-ranking and PSS-based post-processing on **
 
 ### NPSS: A Training-Free Alternative
 
-If you want to apply a similar post-processing strategy on other datasets but do not have human parsing labels for training, you can try **NPSS**, a training-free None-Prompt Similarity Scoring module.
+If you would like to apply a similar post-processing strategy on other datasets but do not have human parsing labels for training, you can use **NPSS**, a training-free **Non-Prompt Similarity Scoring** module.
 
-NPSS is designed to be plug-and-play: it requires only lightweight computation and can still bring clear performance gains in practice. The implementation is available in `utils/metrics_NPSS.py`.
+NPSS is designed to be plug-and-play: it introduces only lightweight computation while still bringing clear performance gains in practice. The implementation is available in `utils/metrics_NPSS.py`.
 
 ### NPSS Performance Across Different Backbones
 
-The following results show that NPSS consistently improves different backbones while keeping the additional inference cost small.
+The following results show that NPSS consistently improves different backbones while keeping the additional inference overhead small.
 
 | Index | Setting | Rank-1 | mAP | Inference Time |
 | --- | --- | ---: | ---: | ---: |
@@ -162,7 +226,7 @@ The following results show that NPSS consistently improves different backbones w
 
 ## Acknowledgement
 
-This codebase is built upon the excellent work of the following projects. We sincerely thank the authors for their contributions to the Re-ID community! 
+This codebase is built upon the excellent work of the following projects. We sincerely thank the authors for their contributions to the Re-ID community!
 
 1. [TransReID](https://github.com/damo-cv/TransReID)
 2. [CLIP-ReID](https://github.com/Syliz517/CLIP-ReID)
