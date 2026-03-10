@@ -2,7 +2,7 @@
 # 🔍COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-identification
 
 ## Introduction
-Welcome to the official repository for **COPE** (Consistent Occlusion and Prompt Enhancement Network) — a state-of-the-art model for **Occluded Person Re-identification**!
+Welcome to the official repository for our CVPR 2026 paper "_COPE: Consistent Occlusion and Prompt Enhancement Network for Occluded Person Re-Identification_" — a state-of-the-art model for **Occluded Person Re-identification**!
 Our method achieves 🚀 **SOTA performance** on multiple occluded and holistic person Re-ID benchmarks. 
 
 Key Highlights:

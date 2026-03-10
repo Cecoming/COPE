@@ -13,6 +13,7 @@ import time
 
 from utils.random_erasing import RandomErasing
 
+
 def sample_patch_prob(part_score, kernel_size=16, stride=(16, 16), threshold=0.5):
     """
     Args:
@@ -95,57 +96,57 @@ def train(cfg,
     scaler = amp.GradScaler()
     data_aug = CICO_PBF(M=cfg.SOLVER.OCCLUSION_NUM, image_shape = (cfg.INPUT.SIZE_TRAIN[0], cfg.INPUT.SIZE_TRAIN[1], 3), device=device).to(device)
 
-    # ################################# 1. Pre-Train the model
-    # if cfg.SOLVER.STAGE1.PRETRAINED_PATH == '':
-    #     logger.info("Pre-training stage is begin.")
-    #     for epoch in range(1, epochs_pre+1):
-    #         loss_meter.reset()
-    #         pre_scheduler.step(epoch)
-    #         # train one iteration
-    #         model.train()
-    #         model.text_encoder.eval()
+    ################################# 1. Pre-Train the model
+    if cfg.SOLVER.STAGE1.PRETRAINED_PATH == '':
+        logger.info("Pre-training stage is begin.")
+        for epoch in range(1, epochs_pre+1):
+            loss_meter.reset()
+            pre_scheduler.step(epoch)
+            # train one iteration
+            model.train()
+            model.text_encoder.eval()
 
-    #         for n_iter, (img, vid, target_cam, target_view, mask) in enumerate(train_loader):
-    #             pre_optimizer.zero_grad()
-    #             img = img.to(device)
-    #             mask = mask.to(device)
-    #             target = vid.to(device)
-    #             target_cam = target_cam.to(device)
+            for n_iter, (img, vid, target_cam, target_view, mask) in enumerate(train_loader):
+                pre_optimizer.zero_grad()
+                img = img.to(device)
+                mask = mask.to(device)
+                target = vid.to(device)
+                target_cam = target_cam.to(device)
                 
-    #             if cfg.MODEL.SIE_CAMERA:
-    #                 target_cam = target_cam.to(device)
-    #             else: 
-    #                 target_cam = None
-    #             if cfg.MODEL.SIE_VIEW:
-    #                 target_view = target_view.to(device)
-    #             else: 
-    #                 target_view = None
+                if cfg.MODEL.SIE_CAMERA:
+                    target_cam = target_cam.to(device)
+                else: 
+                    target_cam = None
+                if cfg.MODEL.SIE_VIEW:
+                    target_view = target_view.to(device)
+                else: 
+                    target_view = None
                 
-    #             with amp.autocast(enabled=True):
-    #                 feat_src, logit_src, matrix, _, _ = model(img, cam_label=target_cam, view_label=target_view, get_matrix=True)
-    #                 loss_seg = segmentation_loss(matrix, mask)
-    #                 loss = loss_seg
+                with amp.autocast(enabled=True):
+                    feat_src, logit_src, matrix, _, _ = model(img, cam_label=target_cam, view_label=target_view, get_matrix=True)
+                    loss_seg = segmentation_loss(matrix, mask)
+                    loss = loss_seg
 
-    #             scaler.scale(loss).backward()
-    #             scaler.step(pre_optimizer)
-    #             scaler.update()
+                scaler.scale(loss).backward()
+                scaler.step(pre_optimizer)
+                scaler.update()
 
-    #             loss_meter.update(loss.item(), img.shape[0])
+                loss_meter.update(loss.item(), img.shape[0])
 
-    #             torch.cuda.synchronize()
-    #             if (n_iter + 1) % log_period == 0:
-    #                 logger.info("Epoch[{}] Iteration[{}/{}] Loss: {:.3f}, Base Lr: {:.2e}"
-    #                             .format(epoch, (n_iter + 1), len(train_loader),
-    #                                     loss_meter.avg, pre_scheduler._get_lr(epoch)[0]))
+                torch.cuda.synchronize()
+                if (n_iter + 1) % log_period == 0:
+                    logger.info("Epoch[{}] Iteration[{}/{}] Loss: {:.3f}, Base Lr: {:.2e}"
+                                .format(epoch, (n_iter + 1), len(train_loader),
+                                        loss_meter.avg, pre_scheduler._get_lr(epoch)[0]))
 
-    #         logger.info("Epoch {} done.".format(epoch))
-    #     if epoch % pre_checkpoint_period == 0:
-    #         torch.save(model.state_dict(), os.path.join(cfg.OUTPUT_DIR, cfg.MODEL.NAME + 'pre_{}.pth'.format(epoch)))
-    #     torch.save(model.state_dict(), os.path.join(cfg.OUTPUT_DIR, cfg.MODEL.NAME + 'pre_{}.pth'.format(epoch)))
-    #     logger.info("Pre-training stage is done.")
-    # else:
-    #     model.load_param(cfg.SOLVER.STAGE1.PRETRAINED_PATH)
-    #     logger.info("Pre-trained model loaded from {}".format(cfg.SOLVER.STAGE1.PRETRAINED_PATH))
+            logger.info("Epoch {} done.".format(epoch))
+        if epoch % pre_checkpoint_period == 0:
+            torch.save(model.state_dict(), os.path.join(cfg.OUTPUT_DIR, cfg.MODEL.NAME + 'pre_{}.pth'.format(epoch)))
+        torch.save(model.state_dict(), os.path.join(cfg.OUTPUT_DIR, cfg.MODEL.NAME + 'pre_{}.pth'.format(epoch)))
+        logger.info("Pre-training stage is done.")
+    else:
+        model.load_param(cfg.SOLVER.STAGE1.PRETRAINED_PATH)
+        logger.info("Pre-trained model loaded from {}".format(cfg.SOLVER.STAGE1.PRETRAINED_PATH))
 
 
     scaler = amp.GradScaler()
