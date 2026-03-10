@@ -108,6 +108,58 @@ Config files for all datasets are located in `configs/<target_dataset>/`.
 
 ---
 
+## Use PSS in other methods
+
+COPE also provides two practical post-processing modules that can be reused in other Re-ID pipelines.
+
+### Reusing PSS Without Retraining Another Method
+
+If you would like to apply **PSS** to another method at inference time, but do not want to migrate the full PSS training pipeline, we recommend the following workflow:
+
+1. Train COPE once on the target dataset.
+2. During COPE inference, save the prompt scores of all gallery images.
+3. During inference of another method, load these saved gallery prompt scores and use them directly for PSS-based post-processing.
+
+This strategy lets you benefit from PSS without modifying the training process of the target method. The implementation can be found in `utils/metrics_PSS.py`.
+
+### Comparison with Re-ranking on Occluded-DukeMTMC
+
+The table below compares standard re-ranking and PSS-based post-processing on **Occluded-DukeMTMC**. PSS provides a stronger balance between accuracy and inference cost for COPE, while also remaining easy to integrate into other methods.
+
+| Index | Setting | Rank-1 | mAP | Inference Time |
+| --- | --- | ---: | ---: | ---: |
+| 1 | CLIP-REID | 67.2 | 60.3 | 41.9s |
+| 2 | 1 + Re-ranking | 72.5 | 74.2 | 179.1s |
+| 3 | 1 + PSS | 75.1 | 68.8 | 45.3s |
+| 4 | ProFD | 70.3 | 63.3 | 128.3s |
+| 5 | 4 + Re-ranking | 74.0 | 75.9 | 243.6s |
+| 6 | 4 + PSS | 78.9 | 72.7 | 132.3s |
+| 7 | COPE (w/o PSS) | 76.8 | 68.9 | 42.3s |
+| 8 | 7 + Re-ranking | 81.1 | 81.6 | 173.7s |
+| 9 | 7 + PSS (COPE) | **82.1** | 75.4 | **51.5s** |
+
+### NPSS: A Training-Free Alternative
+
+If you want to apply a similar post-processing strategy on other datasets but do not have human parsing labels for training, you can try **NPSS**, a training-free None-Prompt Similarity Scoring module.
+
+NPSS is designed to be plug-and-play: it requires only lightweight computation and can still bring clear performance gains in practice. The implementation is available in `utils/metrics_NPSS.py`.
+
+### NPSS Performance Across Different Backbones
+
+The following results show that NPSS consistently improves different backbones while keeping the additional inference cost small.
+
+| Index | Setting | Rank-1 | mAP | Inference Time |
+| --- | --- | ---: | ---: | ---: |
+| 1 | COPE (without PSS) | 76.8 | 68.9 | 42.30s |
+| 2 | 1 + PSS (COPE) | 82.1 | 75.4 | 51.56s |
+| 3 | 1 + NPSS | 80.1 | 74.6 | 44.42s |
+| 4 | CLIP-REID (CNN) | 59.8 | 52.9 | 23.99s |
+| 5 | 4 + NPSS | 66.6 | 61.7 | 31.07s |
+| 6 | CLIP-REID (ViT) | 67.3 | 60.1 | 43.70s |
+| 7 | 6 + NPSS | 71.4 | 67.2 | 46.84s |
+
+---
+
 ## Acknowledgement
 
 This codebase is built upon the excellent work of the following projects. We sincerely thank the authors for their contributions to the Re-ID community! 
