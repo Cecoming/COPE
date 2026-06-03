@@ -7,6 +7,8 @@ Welcome to the official repository of our CVPR 2026 paper, "_COPE: Consistent Oc
 
 COPE is designed for **occluded person re-identification** and delivers strong performance on both occluded and holistic Re-ID benchmarks. ✨
 
+**[NEWS!]** Our paper is available as open access and can be accessed via the [CVPR 2026 Open Access Repository](https://openaccess.thecvf.com/content/CVPR2026/html/Sun_COPE_Consistent_Occlusion_and_Prompt_Enhancement_Network_for_Occluded_Person_CVPR_2026_paper.html).
+
 Key Highlights:
 
 1. COPE consistently outperforms existing methods on **four occluded** and **two holistic** Re-ID datasets.
